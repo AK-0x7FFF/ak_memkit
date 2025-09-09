@@ -39,20 +39,26 @@ class FpgaProcess(ProcessAbs):
             '-disable-yara-builtin',
             '-debug-pte-quality-threshold', '64'
         ])
-        self.process: VmmProcess = Vmm.process(process_name)
+        self.process: VmmProcess = self.device.process(process_name)
         self.memory_read = FpgaMemoryRead(self.process.memory)
 
+    @property
     def name(self) -> str:
         return self.process.name
 
+    @property
     def pid(self) -> int:
         return self.process.pid
 
+    @property
     def path(self) -> str:
         return self.process.pathuser
 
     def get_module(self, module_name: str) -> ModuleAbs:
-        return (self.process.module(module_name))
+        return FpgaModule(self.process.module(module_name))
 
     def module_list(self) -> Generator[ModuleAbs, None, None]:
         return (FpgaModule(module) for module in self.process.module_list())
+
+    def alive_check(self) -> bool:
+        ...

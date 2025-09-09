@@ -1,23 +1,26 @@
+from contextlib import contextmanager
 from copy import copy
 from functools import wraps
 from logging import warning
 from typing import Self, Optional, Any, Callable, Iterable
 
+from memprocfs.vmmpyc import VmmProcess
 
+from .abstract_classes import ProcessAbs
 from .process import Process
 from .vec import Vec2, Vec3
 
 
 
 class AddressCacheSystem:
-    enable: bool = True
+    cache_enable: bool = True
     _cache: dict[int, dict[str, Any]] = dict()
 
     @staticmethod
     def caching_decorator(func: Callable) -> Callable[[Any], Any]:
         @wraps(func)
         def wrapper(address_object: "AddressMemoryRead", *args, **kwargs) -> Any:
-            if not AddressCacheSystem.enable:
+            if not AddressCacheSystem.cache_enable:
                 return func(address_object, *args, **kwargs)
 
             try:
@@ -46,58 +49,70 @@ class AddressCacheSystem:
 
 
 class AddressMemoryRead(AddressCacheSystem):
-    def __init__(self, address: int) -> None:
+    def __init__(self, address: int, process: ProcessAbs | None = None) -> None:
         self.address = address
 
-    @AddressCacheSystem.caching_decorator
-    def bytes(self, size) -> Optional[bytes]: return Process.memory_read.read_memory(self.address, size)
+        if process is None: process = Process.get_global_instance()
+        if process is None: raise RuntimeError()
+        self._process = process
 
     @AddressCacheSystem.caching_decorator
-    def bool(self) -> Optional[bool]: return Process.memory_read.read_bool(self.address)
+    def bytes(self, size) -> Optional[bytes]: return self._process.memory_read.read_memory(self.address, size)
 
     @AddressCacheSystem.caching_decorator
-    def i8(self) -> Optional[int]: return Process.memory_read.read_i8(self.address)
+    def bool(self) -> Optional[bool]: return self._process.memory_read.read_bool(self.address)
 
     @AddressCacheSystem.caching_decorator
-    def u8(self) -> Optional[int]: return Process.memory_read.read_i8(self.address)
+    def i8(self) -> Optional[int]: return self._process.memory_read.read_i8(self.address)
 
     @AddressCacheSystem.caching_decorator
-    def i16(self) -> Optional[int]: return Process.memory_read.read_i16(self.address)
+    def u8(self) -> Optional[int]: return self._process.memory_read.read_i8(self.address)
 
     @AddressCacheSystem.caching_decorator
-    def u16(self) -> Optional[int]: return Process.memory_read.read_u16(self.address)
+    def i16(self) -> Optional[int]: return self._process.memory_read.read_i16(self.address)
 
     @AddressCacheSystem.caching_decorator
-    def i32(self) -> Optional[int]: return Process.memory_read.read_i32(self.address)
+    def u16(self) -> Optional[int]: return self._process.memory_read.read_u16(self.address)
 
     @AddressCacheSystem.caching_decorator
-    def u32(self) -> Optional[int]: return Process.memory_read.read_u32(self.address)
+    def i32(self) -> Optional[int]: return self._process.memory_read.read_i32(self.address)
 
     @AddressCacheSystem.caching_decorator
-    def i64(self) -> Optional[int]: return Process.memory_read.read_i64(self.address)
+    def u32(self) -> Optional[int]: return self._process.memory_read.read_u32(self.address)
 
     @AddressCacheSystem.caching_decorator
-    def u64(self) -> Optional[int]: return Process.memory_read.read_u64(self.address)
+    def i64(self) -> Optional[int]: return self._process.memory_read.read_i64(self.address)
 
     @AddressCacheSystem.caching_decorator
-    def float(self) -> Optional[float]: return Process.memory_read.read_f32(self.address)
+    def u64(self) -> Optional[int]: return self._process.memory_read.read_u64(self.address)
 
     @AddressCacheSystem.caching_decorator
-    def vec(self, size: int) -> Optional[Iterable[float]]: return Process.memory_read.read_vec(self.address, size)
+    def float(self) -> Optional[float]: return self._process.memory_read.read_f32(self.address)
 
     @AddressCacheSystem.caching_decorator
-    def vec2(self) -> Optional[Vec2]: return Vec2(*Process.memory_read.read_vec(self.address, 2))
+    def vec(self, size: int) -> Optional[Iterable[float]]: return self._process.memory_read.read_vec(self.address, size)
 
     @AddressCacheSystem.caching_decorator
-    def vec3(self) -> Optional[Vec3]: return Vec3(*Process.memory_read.read_vec(self.address, 3))
+    def vec2(self) -> Optional[Vec2]:
+        vec = self._process.memory_read.read_vec(self.address, 2)
+        if vec is None: return None
+
+        return Vec2(*vec)
 
     @AddressCacheSystem.caching_decorator
-    def str(self, size: int) -> Optional[str]: return Process.memory_read.read_str(self.address, size)
+    def vec3(self) -> Optional[Vec3]:
+        vec = self._process.memory_read.read_vec(self.address, 3)
+        if vec is None: return None
+
+        return Vec3(*vec)
+
+    @AddressCacheSystem.caching_decorator
+    def str(self, size: int) -> Optional[str]: return self._process.memory_read.read_str(self.address, size)
 
 
 class Address(AddressMemoryRead):
-    def __init__(self, address: int) -> None:
-        super().__init__(address)
+    def __init__(self, address: int, process: ProcessAbs | None = None) -> None:
+        super().__init__(address, process)
 
     def __repr__(self) -> str:
         return "Address<%s | %s>" % (self.address, hex(self.address))
@@ -118,16 +133,17 @@ class Address(AddressMemoryRead):
         return self
 
     def pointer(self) -> Self:
-        return Address(self.u64(...))
+        return Address(self.u64())
 
     def pointer_chain(self, *args: int) -> Self | None:
         address = self.new()
+        if address.address is None: return None
 
         for offset_value in args:
             if not isinstance(offset_value, int): raise ValueError()
 
             address = address.offset(offset_value).pointer()
-            if address.address is None: return Address(0)
+            if address.address is None: return None
 
         return address
 
@@ -135,6 +151,9 @@ class Address(AddressMemoryRead):
         return Address(self.address)
 
     def new(self) -> "Address":
+        return copy(self)
+
+    def copy(self):
         return copy(self)
 
 

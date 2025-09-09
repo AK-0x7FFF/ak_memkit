@@ -1,42 +1,36 @@
-from abc import ABC, abstractmethod
-from typing import Generator, Type, Self, Union
+from typing import Optional, Literal
 
-from .abstract_classes import ModuleAbs, ProcessAbs
+from .abstract_classes import ProcessAbs
 
 
-@lambda cls: cls()
 class Process:
-    def __init__(self):
-        self._process_class: Type[ProcessAbs] | None = None
-        self._process: ProcessAbs | None = None
+    _global_instance: Optional[ProcessAbs] = None
 
-    def meow_mode(self) -> Self:
-        from .meow_struct import MeowProcess
+    @staticmethod
+    def _create_instance(process_name: str, mode: Literal["meow", "fpga"]) -> ProcessAbs | None:
+        match mode:
+            case "meow":
+                from .meow_struct import MeowProcess
+                return MeowProcess(process_name)
+            case "fpga":
+                from .fpga_struct import FpgaProcess
+                return FpgaProcess(process_name)
+        return None
 
-        self._process_class = MeowProcess
-        return self
+    @classmethod
+    def create_global_instance(cls, process_name: str, mode: Literal["meow", "fpga"]) -> ProcessAbs | None:
+        if cls._global_instance is not None: return None
 
-    def fpga_mode(self) -> Self:
-        from .fpga_struct import FpgaProcess
+        cls._global_instance = cls._create_instance(process_name, mode)
+        return cls._global_instance
 
-        self._process_class = FpgaProcess
-        return self
+    @classmethod
+    def get_global_instance(cls) -> ProcessAbs | None:
+        if cls._global_instance is None: return None
+        return cls._global_instance
 
-    def __call__(self, process_name: str) -> Self:
-        if self._process_class is None: raise RuntimeError()
-
-        self._process = self._process_class(process_name)
-        global Process
-        Process = None
-
-        return self
-
-    def __getattr__(self, item):
-        if self._process_class is None or self._process is None: raise RuntimeError("Process is not setup.")
-        return getattr(self._process, item)
-
-
-Process: Union["Process", ProcessAbs]
+    def __new__(cls, process_name: str, mode: Literal["meow", "fpga"]) -> ProcessAbs | None:
+        return cls._create_instance(process_name, mode)
 
 
 
