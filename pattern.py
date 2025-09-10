@@ -1,8 +1,8 @@
 from re import search, DOTALL
 from typing import Self
 
-from ak_memkit.abstract_classes import MemoryReadAbs
-from ak_memkit.address import Address
+from abstract_classes import MemoryReadAbs
+from address import Address
 
 
 class Pattern:
