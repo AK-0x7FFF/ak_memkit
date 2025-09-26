@@ -48,6 +48,9 @@ class MemoryReadAbs(ABC):
         byte = self.read_memory(address, 4 * size)
         if byte is None or not len(byte): return None
 
+        try: return list(unpack("<%if" % size, byte))
+        except Exception: return None
+
     def read_str(self, address: int, byte_size: int = 50) -> str | None:
         byte = self.read_memory(address, byte_size)
         if byte is None or not len(byte): return None
