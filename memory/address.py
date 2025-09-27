@@ -8,7 +8,7 @@ from memprocfs.vmmpyc import VmmProcess
 
 from .abstract_classes import ProcessAbs
 from .process import Process
-from vec import Vec2, Vec3
+from ..vec import Vec2, Vec3
 
 
 
