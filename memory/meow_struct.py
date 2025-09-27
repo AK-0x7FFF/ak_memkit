@@ -1,7 +1,7 @@
 from typing import Generator, TypedDict
 
 from .abstract_classes import MemoryReadAbs, ModuleAbs, ProcessAbs
-from .pyMeow import r_bytes, open_process, get_process_path, get_module, enum_modules, process_exists
+from ..pyMeow import r_bytes, open_process, get_process_path, get_module, enum_modules, process_exists
 
 
 class MeowMemoryRead(MemoryReadAbs):

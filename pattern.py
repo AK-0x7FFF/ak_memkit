@@ -1,8 +1,8 @@
 from re import search, DOTALL
 from typing import Self
 
-from abstract_classes import MemoryReadAbs
-from address import Address
+from .memory.abstract_classes import MemoryReadAbs
+from .memory.address import Address
 
 
 class Pattern:
