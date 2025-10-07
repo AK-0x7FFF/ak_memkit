@@ -56,22 +56,11 @@ class Pen(_DrawFunctionBase):
         return lambda *args, **kwargs: layer.setdefault(self.index, []).append((func, args, kwargs))
 
 
-def overlay_init(width: int, height: int, title: str = "AK32767") -> None:
-    rayc.SetConfigFlags(
-        rayc.FLAG_WINDOW_TRANSPARENT | rayc.FLAG_WINDOW_MOUSE_PASSTHROUGH | rayc.FLAG_WINDOW_TOPMOST | rayc.FLAG_WINDOW_UNDECORATED)
-    rayc.InitWindow(width, height, title.encode("utf8"))
-
-
-def overlay_loop() -> bool:
-    return not rayc.WindowShouldClose()
-
-
 @contextmanager
 def on_draw() -> Generator[None, None, None]:
     rayc.BeginDrawing()
     rayc.ClearBackground(rayc.BLANK)
-    try:
-        yield None
+    try: yield None
     finally:
         if len(layer):
             try:
@@ -86,10 +75,19 @@ def on_draw() -> Generator[None, None, None]:
 
 
 @contextmanager
-def create_layer(index: int) -> Generator[Pen, None, None]:
-    layer.setdefault(index, [])
+def layer_pen(index: int) -> Generator[Pen, None, None]:
+    yield Pen(index)
 
-    try:
-        yield Pen(index)
-    finally:
-        ...
+
+def overlay_init(width: int, height: int, title: str = "AK32767") -> None:
+    rayc.SetConfigFlags(
+        rayc.FLAG_WINDOW_TRANSPARENT |
+        rayc.FLAG_WINDOW_MOUSE_PASSTHROUGH |
+        rayc.FLAG_WINDOW_TOPMOST |
+        rayc.FLAG_WINDOW_UNDECORATED
+    )
+    rayc.InitWindow(width, height, title.encode("utf8"))
+
+
+def overlay_loop() -> bool:
+    return not rayc.WindowShouldClose()
