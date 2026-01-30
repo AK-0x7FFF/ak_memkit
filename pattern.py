@@ -1,16 +1,18 @@
 from re import search, DOTALL
 from typing import Self
 
-from .memory.abstract_classes import MemoryReadAbs
+from .memory.abstract_classes import MemoryReadAbs, ModuleAbs
 from .address import Address
 
 
 class Pattern:
-    def __init__(self, pattern: str, module_base: int, module_buffer: bytes):
+    def __init__(self, pattern: str, module: ModuleAbs, module_buffer: bytes | None = None):
         self.pattern = pattern
 
-        self._module_base = module_base
-        self._module_buffer = module_buffer
+        self.module = module
+        self._module_base = self.module.base
+        if self._module_base is None:
+            self._module_buffer = module_buffer
 
         self._pattern_offset: int | None = None
 
