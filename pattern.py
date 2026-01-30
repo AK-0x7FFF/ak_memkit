@@ -11,7 +11,8 @@ class Pattern:
 
         self.module = module
         self._module_base = self.module.base
-        if self._module_base is None:
+        self._module_buffer = module_buffer
+        if self._module_buffer is None:
             self._module_buffer = module_buffer
 
         self._pattern_offset: int | None = None
