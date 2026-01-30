@@ -24,6 +24,19 @@ class Vec2:
     def from_dict(cls, d: dict[str, int | float]) -> Self:
         return cls(d.get("x", 0.0), d.get("y", 0.0))
 
+    @classmethod
+    def empty(cls) -> Self:
+        return cls()
+
+    def __copy__(self) -> Self:
+        return Vec2(self._array[0], self._array[1])
+
+    def new(self) -> Self:
+        self.__copy__()
+
+    def copy(self) -> Self:
+        self.__copy__()
+
     @property
     def x(self) -> float:
         return self._array[0]
@@ -84,6 +97,19 @@ class Vec3:
     @classmethod
     def from_dict(cls, d: dict[str, int | float]) -> Self:
         return cls(d.get("x", 0.0), d.get("y", 0.0), d.get("z", 0.0))
+
+    @classmethod
+    def empty(cls) -> Self:
+        return cls()
+
+    def __copy__(self) -> Self:
+        return Vec3(self._array[0], self._array[1], self._array[2])
+
+    def new(self) -> Self:
+        self.__copy__()
+
+    def copy(self) -> Self:
+        self.__copy__()
 
     @property
     def x(self) -> float:
