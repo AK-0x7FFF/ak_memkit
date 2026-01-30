@@ -40,7 +40,7 @@ class FpgaProcess(ProcessAbs):
             '-debug-pte-quality-threshold', '64'
         ])
         self.process: VmmProcess = self.device.process(process_name)
-        self.memory_read = FpgaMemoryRead(self.process.memory)
+        self.__memory_read = FpgaMemoryRead(self.process.memory)
 
     @property
     def name(self) -> str:
@@ -59,6 +59,10 @@ class FpgaProcess(ProcessAbs):
 
     def module_list(self) -> Generator[ModuleAbs, None, None]:
         return (FpgaModule(module) for module in self.process.module_list())
+
+    @property
+    def memory_read(self) -> MemoryReadAbs:
+        return self.__memory_read
 
     def alive_check(self) -> bool:
         ...

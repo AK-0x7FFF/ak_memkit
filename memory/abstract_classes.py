@@ -101,4 +101,6 @@ class ProcessAbs(ABC):
     @abstractmethod
     def module_list(self) -> Generator[ModuleAbs, None, None]: ...
 
-    memory_read: MemoryReadAbs
+    @property
+    @abstractmethod
+    def memory_read(self) -> MemoryReadAbs: ...

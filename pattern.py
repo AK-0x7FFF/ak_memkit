@@ -2,7 +2,7 @@ from re import search, DOTALL
 from typing import Self
 
 from .memory.abstract_classes import MemoryReadAbs
-from .memory.address import Address
+from .address import Address
 
 
 class Pattern:

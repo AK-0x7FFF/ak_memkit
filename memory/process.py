@@ -10,12 +10,14 @@ class Process:
     def _create_instance(process_name: str, mode: Literal["meow", "fpga"]) -> ProcessAbs | None:
         match mode:
             case "meow":
-                from .meow_struct import MeowProcess
+                from .meow import MeowProcess
                 return MeowProcess(process_name)
+            case "neac":
+                from .neac import NeacProcess
+                return NeacProcess(process_name)
             case "fpga":
-                from .fpga_struct import FpgaProcess
+                from .fpga import FpgaProcess
                 return FpgaProcess(process_name)
-        return None
 
     @classmethod
     def create_global_instance(cls, process_name: str, mode: Literal["meow", "fpga"]) -> ProcessAbs | None:

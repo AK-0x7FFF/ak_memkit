@@ -1,7 +1,7 @@
-from typing import Generator, TypedDict
+from typing import Generator
 
 from .abstract_classes import MemoryReadAbs, ModuleAbs, ProcessAbs
-from ..pyMeow import r_bytes, open_process, get_process_path, get_module, enum_modules, process_exists
+from ..libs.pyMeow import r_bytes, open_process, get_process_path, get_module, enum_modules, process_exists
 
 
 class MeowMemoryRead(MemoryReadAbs):
@@ -32,7 +32,7 @@ class MeowModule(ModuleAbs):
 class MeowProcess(ProcessAbs):
     def __init__(self, process_name: str):
         self.process = open_process(process_name)
-        self.memory_read = MeowMemoryRead(self.process)
+        self.__memory_read = MeowMemoryRead(self.process)
 
     @property
     def name(self) -> str:
@@ -51,6 +51,10 @@ class MeowProcess(ProcessAbs):
 
     def module_list(self) -> Generator[ModuleAbs, None, None]:
         return (MeowModule(module) for module in enum_modules(self.process))
+
+    @property
+    def memory_read(self) -> MemoryReadAbs:
+        return self.__memory_read
 
     def alive_check(self) -> bool:
         return process_exists(self.process.get("name"))
