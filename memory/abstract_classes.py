@@ -2,6 +2,8 @@ from abc import ABC, abstractmethod
 from struct import unpack
 from typing import Generator
 
+from numpy import array, float32, ndarray
+
 
 class MemoryReadAbs(ABC):
     @staticmethod
@@ -44,11 +46,11 @@ class MemoryReadAbs(ABC):
     def read_f32(self, address: int) -> float | None:
         return self.unpack_byte(self.read_memory(address, 4), "f")
 
-    def read_vec(self, address: int, size: int) -> list[float] | None:
-        byte = self.read_memory(address, 4 * size)
+    def read_vec(self, address: int, size: int) -> ndarray | None:
+        byte = self.read_memory(address, size << 2)
         if byte is None or not len(byte): return None
 
-        try: return list(unpack("<%if" % size, byte))
+        try: return array(unpack("<%if" % size, byte), dtype=float32)
         except Exception: return None
 
     def read_str(self, address: int, byte_size: int = 50) -> str | None:

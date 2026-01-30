@@ -94,14 +94,14 @@ class AddressMemoryRead(AddressCacheSystem):
         vec = self._process.memory_read.read_vec(self.address, 2)
         if vec is None: return None
 
-        return Vec2(*vec)
+        return Vec2.from_sequence(vec)
 
     @AddressCacheSystem.caching_decorator
     def vec3(self) -> Vec3 | None:
         vec = self._process.memory_read.read_vec(self.address, 3)
         if vec is None: return None
 
-        return Vec3(*vec)
+        return Vec3.from_sequence(vec)
 
     @AddressCacheSystem.caching_decorator
     def str(self, size: int) -> str | None: return self._process.memory_read.read_str(self.address, size)
