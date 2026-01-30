@@ -1,204 +1,154 @@
-from array import ArrayType
-from copy import copy
-from dataclasses import dataclass
-from math import sqrt, atan2, degrees
-from typing import Iterable, Any
+from __future__ import annotations
 
-from numpy import array, ndarray, dtype, float64
+from functools import wraps
+from typing import Sequence, Self, Callable, TypeVar
+
+import numpy as np
+from numba import njit
 
 
-@dataclass
+_T = TypeVar("_T")
+
+
 class Vec2:
-    x: float = .0
-    y: float = .0
+    __slots__ = ("_array", )
 
-    def __repr__(self):
-        return "Vec2(%f, %f)" % (self.x, self.y)
-
-    def __iter__(self):
-        return iter((self.x, self.y))
-
-    def __getitem__(self, item: int | str) -> float:
-        if isinstance(item, int): return (self.x, self.y)[item]
-        elif isinstance(item, str): return dict(x=self.x, y=self.y)[item]
-        else: raise ValueError()
-
-    def __hash__(self) -> int:
-        return hash((self.x, self.y))
-
-    def __round__(self, ndigits: int | None = None) -> "Vec2":
-        return Vec2(
-            round(self.x, ndigits),
-            round(self.y, ndigits)
-        )
-
-    def __add__(self, other) -> "Vec2":
-        if not isinstance(other, Vec2): return NotImplemented
-
-        return Vec2(
-            self.x + other.x,
-            self.y + other.y
-        )
-
-    def __sub__(self, other) -> "Vec2":
-        if not isinstance(other, Vec2): return NotImplemented
-
-        return Vec2(
-            self.x - other.x,
-            self.y - other.y
-        )
-
-    def __mul__(self, other: "Vec2") -> "Vec2":
-        return Vec2(
-            self.x * other.x,
-            self.y * other.y,
-        )
-
-    def __truediv__ (self, other: "Vec2") -> "Vec2":
-        return Vec2(
-            self.x / other.x,
-            self.y / other.y,
-        )
+    def __init__(self, x: float = 0.0, y: float = 0.0) -> None:
+        self._array = np.array((x, y), dtype=np.float32)
 
     @classmethod
-    def from_dict(cls, dict: dict[str, float | None]) -> "Vec2":
-        x: float = dict.get("x", None)
-        y: float = dict.get("y", None)
-        if None in (x, y): raise ValueError()
+    def from_sequence(cls, v: Sequence[int | float]) -> Self:
+        return cls(v[0], v[1])
 
-        return Vec2(x, y)
+    @classmethod
+    def from_dict(cls, d: dict[str, int | float]) -> Self:
+        return cls(d.get("x", 0.0), d.get("y", 0.0))
 
-    def copy(self) -> "Vec2":
-        return copy(self)
+    @property
+    def x(self) -> float:
+        return self._array[0]
 
-    def numpy_array(self) -> ndarray[Any, dtype[Any]]:
-        return array((self.x, self.y), dtype=float64)
+    @property
+    def y(self) -> float:
+        return self._array[1]
 
-    def distance(self, vec2: "Vec2") -> float:
-        opp_pos = self - vec2
+    def __getitem__(self, index: int | str) -> float:
+        if isinstance(index, int):
+            # lise like
+            return self._array[index]
+        if isinstance(index, str):
+            # dict like
+            if index == "x": return self._array[0]
+            if index == "y": return self._array[1]
+        raise TypeError("index must be int or str")
 
-        distance = sqrt(sum((
-            opp_pos.x ** 2,
-            opp_pos.y ** 2
-        )))
-        return distance
+    def __repr__(self) -> str:
+        return f"Vec2({self._array[0]}, {self._array[1]})"
 
-    def angle(self, vec2: "Vec2") -> float:
-        opp_pos = self - vec2
+    @staticmethod
+    def __argument_check(to_vec: bool) -> Callable[[Callable[[Vec2], Vec2]], Callable[[Vec2], Vec2]]:
+        def decorator(func: _T) -> _T:
+            @wraps(func)
+            def wrapper(self, other: Vec2 | np.dtype[np.float32]) -> float | Vec2:
+                if isinstance(other, Vec2):
+                    other = other._array
 
-        angle = atan2(opp_pos.y, opp_pos.x)
-        return degrees(angle)
+                return func(self._array, other) if not to_vec else Vec2.from_sequence(func(self._array, other))
 
-    def min(self, vec2: "Vec2"):
-        return Vec2(min(self.x, vec2.x), min(self.y, vec2.y))
+            return wrapper
+        return decorator
 
-    def max(self, vec2: "Vec2"):
-        return Vec2(max(self.x, vec2.x), max(self.y, vec2.y))
+    @__argument_check(False)
+    @njit
+    def distance(self: np.dtype[np.float32], other: Vec2 | np.dtype[np.float32]) -> float:
+        return np.linalg.norm(self - other)
 
 
-@dataclass
+    @__argument_check(False)
+    @njit
+    def angle(self: np.dtype[np.float32], other: Vec2 | np.dtype[np.float32]) -> float:
+        angle_rad = np.arctan2(other[1], other[0]) - np.arctan2(self[1], self[0])
+        return np.degrees(angle_rad)
+
+
 class Vec3:
-    x: float = .0
-    y: float = .0
-    z: float = .0
+    __slots__ = ("_array", )
 
-    def __repr__(self):
-        return "Vec3(%f, %f, %f)" % (self.x, self.y, self.z)
-
-    def __iter__(self) -> Iterable:
-        return iter((self.x, self.y, self.z))
-
-    def __getitem__(self, item: int | str) -> float:
-        if isinstance(item, int): return (self.x, self.y, self.z)[item]
-        elif isinstance(item, str): return dict(x=self.x, y=self.y, z=self.z)[item]
-        else: raise ValueError()
-
-    def __hash__(self) -> int:
-        return hash((self.x, self.y, self.z))
-
-    def __add__(self, other) -> "Vec3":
-        if not isinstance(other, Vec3): return NotImplemented
-
-        return Vec3(
-            self.x + other.x,
-            self.y + other.y,
-            self.z + other.z
-        )
-
-    def __sub__(self, other) -> "Vec3":
-        if not isinstance(other, Vec3): return NotImplemented
-
-        return Vec3(
-            self.x - other.x,
-            self.y - other.y,
-            self.z - other.z
-        )
-
-    def __floordiv__(self, other: "Vec3") -> "Vec3":
-        return Vec3(
-            self.x * other.x,
-            self.y * other.y,
-            self.z * other.z,
-        )
-
-    def __truediv__(self, other: "Vec3") -> "Vec3":
-        return Vec3(
-            self.x / other.x,
-            self.y / other.y,
-            self.z / other.z,
-        )
+    def __init__(self, x: float = 0.0, y: float = 0.0, z: float =0.0) -> None:
+        self._array = np.array((x, y, z), dtype=np.float32)
 
     @classmethod
-    def from_dict(cls, dict: dict[str, float | None]) -> "Vec3":
-        x: float = dict.get("x", None)
-        y: float = dict.get("y", None)
-        z: float = dict.get("z", None)
-        if None in (x, y, z): raise ValueError()
+    def from_sequence(cls, v: Sequence[int | float]) -> Self:
+        return cls(v[0], v[1], v[2])
 
-        return Vec3(x, y, z)
+    @classmethod
+    def from_dict(cls, d: dict[str, int | float]) -> Self:
+        return cls(d.get("x", 0.0), d.get("y", 0.0), d.get("z", 0.0))
 
-    def copy(self) -> "Vec3":
-        return copy(self)
+    @property
+    def x(self) -> float:
+        return self._array[0]
 
-    def numpy_array(self) -> ndarray[Any, dtype[Any]]:
-        return array((self.x, self.y, self.z), dtype=float64)
+    @property
+    def y(self) -> float:
+        return self._array[1]
 
-    def distance(self, vec3: "Vec3") -> float:
-        opp_pos = self - vec3
+    @property
+    def z(self) -> float:
+        return self._array[2]
 
-        distance = sqrt(sum((
-            opp_pos.x ** 2,
-            opp_pos.y ** 2,
-            opp_pos.z ** 2
-        )))
-        return distance
+    def __getitem__(self, index: int | str) -> float:
+        if isinstance(index, int):
+            # lise like
+            return self._array[index]
+        if isinstance(index, str):
+            # dict like
+            if index == "x": return self._array[0]
+            if index == "y": return self._array[1]
+            if index == "z": return self._array[2]
+        raise TypeError("index must be int or str")
 
-    def normalize(self) -> "Vec3":
-        length = sqrt(sum((self.x ** 2, self.y ** 2, self.z ** 2)))
-        return Vec3(
-            self.x / length,
-            self.y / length,
-            self.z / length
-        )
-
-    def cross(self, other: "Vec3") -> "Vec3":
-        return Vec3(
-            self.y * other.z - self.z * other.y,
-            self.z * other.x - self.x * other.z,
-            self.x * other.y - self.y * other.x
-        )
-
-    def dot(self, other: "Vec3") -> float:
-        return sum((
-            self.x * other.x,
-            self.y * other.y,
-            self.z * other.z,
-        ))
+    def __repr__(self) -> str:
+        return f"Vec3({self._array[0]}, {self._array[1]}, {self._array[2]})"
 
 
-@dataclass
-class Vec4:
-    x: float = .0
-    y: float = .0
-    z: float = .0
-    w: float = .0
+    @staticmethod
+    def __argument_check(cast: bool) -> Callable[[Callable[[Vec3], Vec3]], Callable[[Vec3], Vec3]]:
+        def decorator(func: _T) -> _T:
+            @wraps(func)
+            def wrapper(self, other: Vec3 | np.dtype[np.float32]) -> float | Vec3:
+                if isinstance(other, Vec3):
+                    other = other._array
+
+                return func(self._array, other) if not cast else Vec3.from_sequence(func(self._array, other))
+
+            return wrapper
+        return decorator
+
+    @__argument_check(False)
+    @njit
+    def distance(self: np.dtype[np.float32], b: Vec3 | np.dtype[np.float32]) -> float:
+        return np.sqrt(np.sum((self - b) ** 2))
+
+    @__argument_check(True)
+    @njit
+    def cross(self: np.dtype[np.float32], b: Vec3 | np.dtype[np.float32]) -> Vec3:
+        x = self[1] * b[2] - self[2] * b[1]
+        y = self[2] * b[0] - self[0] * b[2]
+        z = self[0] * b[1] - self[1] * b[0]
+
+        return np.array([x, y, z])
+
+    @__argument_check(False)
+    @njit
+    def dot(self: np.dtype[np.float32], b: Vec3 | np.dtype[np.float32]) -> float:
+        return np.dot(self, b)
+
+if __name__ == '__main__':
+    from timeit import timeit
+    a = Vec3(12323, 45656)
+    b = Vec3(453335, -986366)
+
+    print(a.dot(b), a.dot(b))
+    print(timeit(lambda: a.dot(b)))
+    # print(timeit(lambda: a._dot(b)))
