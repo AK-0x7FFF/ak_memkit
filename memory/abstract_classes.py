@@ -7,10 +7,11 @@ from numpy import array, float32, ndarray
 
 class MemoryReadAbs(ABC):
     @staticmethod
-    def unpack_byte(byte: bytes, format_str: str) -> bool | int | float | bytes | str | None:
-        if byte is None or not len(byte): return None
+    def unpack_byte(byte: bytes, format: str) -> bool | int | float | bytes | str | None:
+        if byte is None or not len(byte):
+            return None
 
-        try: return unpack("<" + format_str, byte)[0]
+        try: return unpack("<" + format, byte)[0]
         except Exception as err: return None
 
     @abstractmethod
