@@ -7,7 +7,7 @@ class Process:
     _global_instance: Optional[ProcessAbs] = None
 
     @staticmethod
-    def _create_instance(process_name: str, mode: Literal["meow", "fpga"]) -> ProcessAbs | None:
+    def _create_instance(process_name: str, mode: Literal["meow", "neac", "fpga"]) -> ProcessAbs | None:
         match mode:
             case "meow":
                 from .meow import MeowProcess
@@ -20,7 +20,7 @@ class Process:
                 return FpgaProcess(process_name)
 
     @classmethod
-    def create_global_instance(cls, process_name: str, mode: Literal["meow", "fpga"]) -> ProcessAbs | None:
+    def create_global_instance(cls, process_name: str, mode: Literal["meow", "neac", "fpga"]) -> ProcessAbs | None:
         if cls._global_instance is not None: return None
 
         cls._global_instance = cls._create_instance(process_name, mode)
