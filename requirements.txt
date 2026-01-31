@@ -1,6 +1,5 @@
 memprocfs>=5.14.0
 numpy>=2.2.3
-raylib
 numba
 scipy
 git+https://github.com/MarioVilas/winappdbg.git
