@@ -44,6 +44,9 @@ class NeacProcess(ProcessAbs):
         self.__pid = self.process.get_pid()
         self.__memory_read = NeacMemoryRead(self.driver, self.__pid)
 
+    def __del__(self) -> None:
+        self.driver.disconnect()
+
     @staticmethod
     def __get_process(process_name: str) -> Process | None:
         system = System()

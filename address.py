@@ -4,6 +4,7 @@ from functools import wraps
 from logging import warning
 from typing import Self, Any, Callable, Sequence
 
+from deprecated import deprecated
 
 from .memory.abstract_classes import ProcessAbs
 from .memory.process import Process
@@ -17,11 +18,11 @@ class AddressCacheSystem:
 
     @staticmethod
     def _caching(func: Callable) -> Callable[..., Any]:
+        if not AddressCacheSystem.cache_enable:
+            return func
+
         @wraps(func)
         def wrapper(address_object: int | AddressMemoryRead, *args, **kwargs) -> Any:
-            if not AddressCacheSystem.cache_enable:
-                return func(address_object, *args, **kwargs)
-
             if isinstance(address_object, Address):
                 address = address_object.address
             else:
@@ -47,72 +48,84 @@ class AddressCacheSystem:
 
 
 class AddressMemoryRead(AddressCacheSystem):
-    def __init__(self, address: int, process: ProcessAbs | None = None) -> None:
+    def __init__(self, address: int) -> None:
         self.address = address
 
-        if process is None: process = Process.get_global_instance()
-        if process is None: raise RuntimeError()
-        self._process = process
 
+    @Process.process_initialize_check
     @AddressCacheSystem._caching
-    def bytes(self, size) -> bytes | None: return self._process.memory_read.read_memory(self.address, size)
+    def bytes(self, size) -> bytes | None: return Process.get().memory_read.read_memory(self.address, size)
 
+    @Process.process_initialize_check
     @AddressCacheSystem._caching
-    def bool(self) -> bool | None: return self._process.memory_read.read_bool(self.address)
+    def bool(self) -> bool | None: return Process.get().memory_read.read_bool(self.address)
 
+    @Process.process_initialize_check
     @AddressCacheSystem._caching
-    def i8(self) -> int | None: return self._process.memory_read.read_i8(self.address)
+    def i8(self) -> int | None: return Process.get().memory_read.read_i8(self.address)
 
+    @Process.process_initialize_check
     @AddressCacheSystem._caching
-    def u8(self) -> int | None: return self._process.memory_read.read_i8(self.address)
+    def u8(self) -> int | None: return Process.get().memory_read.read_i8(self.address)
 
+    @Process.process_initialize_check
     @AddressCacheSystem._caching
-    def i16(self) -> int | None: return self._process.memory_read.read_i16(self.address)
+    def i16(self) -> int | None: return Process.get().memory_read.read_i16(self.address)
 
+    @Process.process_initialize_check
     @AddressCacheSystem._caching
-    def u16(self) -> int | None: return self._process.memory_read.read_u16(self.address)
+    def u16(self) -> int | None: return Process.get().memory_read.read_u16(self.address)
 
+    @Process.process_initialize_check
     @AddressCacheSystem._caching
-    def i32(self) -> int | None: return self._process.memory_read.read_i32(self.address)
+    def i32(self) -> int | None: return Process.get().memory_read.read_i32(self.address)
 
+    @Process.process_initialize_check
     @AddressCacheSystem._caching
-    def u32(self) -> int | None: return self._process.memory_read.read_u32(self.address)
+    def u32(self) -> int | None: return Process.get().memory_read.read_u32(self.address)
 
+    @Process.process_initialize_check
     @AddressCacheSystem._caching
-    def i64(self) -> int | None: return self._process.memory_read.read_i64(self.address)
+    def i64(self) -> int | None: return Process.get().memory_read.read_i64(self.address)
 
+    @Process.process_initialize_check
     @AddressCacheSystem._caching
-    def u64(self) -> int | None: return self._process.memory_read.read_u64(self.address)
+    def u64(self) -> int | None: return Process.get().memory_read.read_u64(self.address)
 
+    @Process.process_initialize_check
     @AddressCacheSystem._caching
-    def float(self) -> float | None: return self._process.memory_read.read_f32(self.address)
+    def float(self) -> float | None: return Process.get().memory_read.read_f32(self.address)
 
+    @Process.process_initialize_check
     @AddressCacheSystem._caching
-    def vec(self, size: int) -> Sequence[float] | None: return self._process.memory_read.read_vec(self.address, size)
+    def vec(self, size: int) -> Sequence[float] | None: return Process.get().memory_read.read_vec(self.address, size)
 
+    @Process.process_initialize_check
     @AddressCacheSystem._caching
     def vec2(self) -> Vec2 | None:
-        vec = self._process.memory_read.read_vec(self.address, 2)
+        vec = Process.get().memory_read.read_vec(self.address, 2)
         if vec is None: return None
 
         return Vec2.from_sequence(vec)
 
+    @Process.process_initialize_check
     @AddressCacheSystem._caching
     def vec3(self) -> Vec3 | None:
-        vec = self._process.memory_read.read_vec(self.address, 3)
+        vec = Process.get().memory_read.read_vec(self.address, 3)
         if vec is None: return None
 
         return Vec3.from_sequence(vec)
 
+    @Process.process_initialize_check
     @AddressCacheSystem._caching
-    def str(self, size: int) -> str | None: return self._process.memory_read.read_str(self.address, size)
+    def str(self, size: int) -> str | None: return Process.get().memory_read.read_str(self.address, size)
 
 
 class Address(AddressMemoryRead):
     __slots__ = ("address", )
 
-    def __init__(self, address: int, process: ProcessAbs | None = None) -> None:
-        super().__init__(address, process)
+    def __init__(self, address: int) -> None:
+        super().__init__(address)
 
     def __repr__(self) -> str:
         return "Address(%s | %s)" % (self.address, hex(self.address))
@@ -150,7 +163,7 @@ class Address(AddressMemoryRead):
             offsets = (0, )
 
         def u64(_) -> int | None:
-            return self._process.memory_read.read_u64(address)
+            return Process.get().memory_read.read_u64(address)
         for offset in offsets:
             if not isinstance(offset, int):
                 raise ValueError()
@@ -167,12 +180,17 @@ class Address(AddressMemoryRead):
     def pointer_new(self, *offset: int) -> Self:
         return self.new().pointer(*offset)
 
+    @deprecated(reason="use pointer() or pointer_new() instead")
+    def pointer_chain(self, *offset: int) -> Self:
+        return self.pointer_new(*offset)
+
     def __copy__(self) -> Address:
         return Address(self.address)
 
     def new(self) -> Address:
         return self.__copy__()
 
+    @deprecated(reason="Use new() instead")
     def copy(self):
         return self.__copy__()
 

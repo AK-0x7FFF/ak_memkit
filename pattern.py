@@ -1,6 +1,7 @@
 from re import search, DOTALL
 from typing import Self
 
+from .memory.process import Process
 from .memory.abstract_classes import MemoryReadAbs, ModuleAbs
 from .address import Address
 
@@ -13,7 +14,7 @@ class Pattern:
         self._module_base = self.module.base
         self._module_buffer = module_buffer
         if self._module_buffer is None:
-            self._module_buffer = module_buffer
+            self._module_buffer = Process.get().memory_read.read_memory(self.module.base, self.module.size)
 
         self._pattern_offset: int | None = None
 

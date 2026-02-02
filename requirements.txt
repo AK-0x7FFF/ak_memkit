@@ -3,3 +3,4 @@ numpy>=2.2.3
 numba
 scipy
 git+https://github.com/MarioVilas/winappdbg.git
+deprecated
