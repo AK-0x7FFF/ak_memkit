@@ -66,10 +66,11 @@ class Process:
                 raise ValueError()
 
     @classmethod
-    @mode_initialized_check
     def create(cls, process_name: str, mode: Literal["meow", "neac", "fpga"] | None = None) -> ProcessAbs | None:
         if mode is not None:
             cls.set_mode(mode)
+
+        cls.mode_initialized_check(lambda: ...)
 
         cls._instance = cls._create_instance(process_name)
         return cls._instance

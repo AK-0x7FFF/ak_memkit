@@ -1,7 +1,7 @@
 from typing import Generator
 
 from .abstract_classes import MemoryReadAbs, ModuleAbs, ProcessAbs
-from ..libs.pyMeow import r_bytes, open_process, get_process_path, get_module, enum_modules, process_exists
+from libs.pyMeow import r_bytes, open_process, get_process_path, get_module, enum_modules, process_exists
 
 
 class MeowMemoryRead(MemoryReadAbs):

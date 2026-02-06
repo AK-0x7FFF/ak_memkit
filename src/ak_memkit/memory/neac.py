@@ -5,7 +5,7 @@ from winappdbg.module import Module
 from winappdbg.process import Process
 from winappdbg.system import System
 
-from ..libs.NeacController.NeacController import NeacDriverManager
+from NeacController import NeacDriverManager
 from .abstract_classes import MemoryReadAbs, ModuleAbs, ProcessAbs
 
 

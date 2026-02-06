@@ -1,0 +1,39 @@
+[build-system]
+    requires = [
+        "setuptools>=64.0",
+        "wheel>=0.40.0",
+        "pybind11>=2.6.0"
+    ]
+    build-backend = "setuptools.build_meta"
+
+[project]
+    name = "ak-memkit"
+    version = "0.0.1"
+    authors = [
+        {name = "AK", email = "akpainkiller32767@gmail.com"},
+    ]
+    description = "AK32767's mysterious memory reading toolkit"
+    readme = "README.md"
+    requires-python = ">=3.12"
+    license = "MIT"
+    license-files = ["LICENSE*"]
+    classifiers = [
+        "Development Status :: 3 - Alpha",
+        "Intended Audience :: Developers",
+        "Topic :: Software Development :: Libraries :: Python Modules",
+        "Programming Language :: Python :: 3.12",
+        "Programming Language :: Python :: 3.13",
+        "Programming Language :: Python :: 3.14",
+        "Operating System :: Microsoft :: Windows",
+    ]
+
+    dependencies = [
+        "memprocfs>=5.14.0",
+        "numpy",
+        "numba",
+        "scipy",
+        "winappdbg @ git+https://github.com/MarioVilas/winappdbg.git",
+        "deprecated",
+    ]
+
+

@@ -10,10 +10,10 @@ _T = TypeVar("_T")
 
 
 class Vec2:
-    __slots__ = ("_array",)
+    __slots__ = ("array",)
 
     def __init__(self, x: float = 0.0, y: float = 0.0) -> None:
-        self._array = np.array((x, y), dtype=np.float32)
+        self.array = np.array((x, y), dtype=np.float32)
 
     @classmethod
     def from_sequence(cls, v: Sequence[int | float]) -> Self:
@@ -23,12 +23,8 @@ class Vec2:
     def from_dict(cls, d: dict[str, int | float]) -> Self:
         return cls(d.get("x", 0.0), d.get("y", 0.0))
 
-    @classmethod
-    def empty(cls) -> Self:
-        return cls()
-
     def __copy__(self) -> Self:
-        return Vec2(self._array[0], self._array[1])
+        return Vec2(self.array[0], self.array[1])
 
     def new(self) -> Self:
         return self.__copy__()
@@ -38,32 +34,38 @@ class Vec2:
 
     @property
     def x(self) -> float:
-        return self._array[0]
+        return self.array[0]
 
     @x.setter
     def x(self, value: float) -> None:
-        self._array[0] = value
+        self.array[0] = value
 
     @property
     def y(self) -> float:
-        return self._array[1]
+        return self.array[1]
 
     @y.setter
     def y(self, value: float) -> None:
-        self._array[1] = value
+        self.array[1] = value
 
     def __getitem__(self, index: int | str) -> float:
         if isinstance(index, int):
             # lise like
-            return self._array[index]
+            return self.array[index]
         if isinstance(index, str):
             # dict like
-            if index == "x": return self._array[0]
-            if index == "y": return self._array[1]
+            if index == "x": return self.array[0]
+            if index == "y": return self.array[1]
         raise TypeError("index must be int or str")
 
     def __repr__(self) -> str:
-        return f"Vec2({self._array[0]}, {self._array[1]})"
+        return f"Vec2({self.array[0]}, {self.array[1]})"
+
+    def to_sequence(self) -> list:
+        return [self.array[0], self.array[1]]
+
+    def to_dict(self) -> dict[str, float]:
+        return {"x": self.array[0], "y": self.array[1]}
 
     _TH = Union["Vec2", float | np.dtype[np.float32]]
 
@@ -75,9 +77,9 @@ class Vec2:
                 if isinstance(other, float):
                     other = np.array((other, other), dtype=np.float32)
                 elif isinstance(other, Vec2):
-                    other = other._array
+                    other = other.array
 
-                return func(self._array, other) if not to_vec else Vec2.from_sequence(func(self._array, other))
+                return func(self.array, other) if not to_vec else Vec2.from_sequence(func(self.array, other))
 
             return wrapper
 
@@ -122,10 +124,10 @@ class Vec2:
 
 
 class Vec3:
-    __slots__ = ("_array",)
+    __slots__ = ("array",)
 
     def __init__(self, x: float = 0.0, y: float = 0.0, z: float = 0.0) -> None:
-        self._array = np.array((x, y, z), dtype=np.float32)
+        self.array = np.array((x, y, z), dtype=np.float32)
 
     @classmethod
     def from_sequence(cls, v: Sequence[int | float]) -> Self:
@@ -135,12 +137,9 @@ class Vec3:
     def from_dict(cls, d: dict[str, int | float]) -> Self:
         return cls(d.get("x", 0.0), d.get("y", 0.0), d.get("z", 0.0))
 
-    @classmethod
-    def empty(cls) -> Self:
-        return cls()
 
     def __copy__(self) -> Self:
-        return Vec3(self._array[0], self._array[1], self._array[2])
+        return Vec3(self.array[0], self.array[1], self.array[2])
 
     def new(self) -> Self:
         return self.__copy__()
@@ -150,41 +149,47 @@ class Vec3:
 
     @property
     def x(self) -> float:
-        return self._array[0]
+        return self.array[0]
 
     @x.setter
     def x(self, value: float) -> None:
-        self._array[0] = value
+        self.array[0] = value
 
     @property
     def y(self) -> float:
-        return self._array[1]
+        return self.array[1]
 
     @y.setter
     def y(self, value: float) -> None:
-        self._array[1] = value
+        self.array[1] = value
 
     @property
     def z(self) -> float:
-        return self._array[2]
+        return self.array[2]
 
     @z.setter
     def z(self, value: float) -> None:
-        self._array[2] = value
+        self.array[2] = value
 
     def __getitem__(self, index: int | str) -> float:
         if isinstance(index, int):
             # lise like
-            return self._array[index]
+            return self.array[index]
         if isinstance(index, str):
             # dict like
-            if index == "x": return self._array[0]
-            if index == "y": return self._array[1]
-            if index == "z": return self._array[2]
+            if index == "x": return self.array[0]
+            if index == "y": return self.array[1]
+            if index == "z": return self.array[2]
         raise TypeError("index must be int or str")
 
     def __repr__(self) -> str:
-        return f"Vec3({self._array[0]}, {self._array[1]}, {self._array[2]})"
+        return f"Vec3({self.array[0]}, {self.array[1]}, {self.array[2]})"
+
+    def to_sequence(self) -> list:
+        return [self.array[0], self.array[1], self.array[2]]
+
+    def to_dict(self) -> dict[str, float]:
+        return {"x": self.array[0], "y": self.array[1], "z": self.array[2]}
 
     _TH = Union["Vec3", float | np.dtype[np.float32]]
 
@@ -196,9 +201,9 @@ class Vec3:
                 if isinstance(other, float):
                     other = np.array((other, other), dtype=np.float32)
                 elif isinstance(other, Vec3):
-                    other = other._array
+                    other = other.array
 
-                return func(self._array, other) if not cast else Vec3.from_sequence(func(self._array, other))
+                return func(self.array, other) if not cast else Vec3.from_sequence(func(self.array, other))
 
             return wrapper
 
