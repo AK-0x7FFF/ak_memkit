@@ -6,6 +6,7 @@ if %errorLevel% neq 0 (
     exit
 )
 
+git submodule init
 git submodule update --remote --recursive --merge
 
 set projectDir=%cd%
