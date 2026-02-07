@@ -1,4 +1,6 @@
-# setup.py
+# -*- coding: utf-8 -*-
+
+
 import subprocess
 import sys
 import os
@@ -36,7 +38,7 @@ class BuildCommand:
                 return False
             else:
                 print(f"Build successful!")
-                if result.stdout.strip():
+                if result.stdout and result.stdout.strip():
                     print(f"Output:\n{result.stdout[:500]}")
                 return True
 
