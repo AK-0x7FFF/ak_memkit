@@ -103,7 +103,12 @@ if __name__ == "__main__":
             "package_dir": {
                 "ak_memkit": "src/ak_memkit"
             },
-            "include_package_data": True,
+            "package_data": {
+                "ak_memkit": [
+                    "*.py",
+                    "memory/*.py"
+                ]
+            },
             "zip_safe": False,
         }
     })
