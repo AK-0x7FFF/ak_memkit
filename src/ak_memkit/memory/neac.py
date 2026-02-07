@@ -5,7 +5,7 @@ from winappdbg.module import Module
 from winappdbg.process import Process
 from winappdbg.system import System
 
-from NeacController import NeacDriverManager
+from neac_controller import NeacDriverManager
 from .abstract_classes import MemoryReadAbs, ModuleAbs, ProcessAbs
 
 
@@ -20,11 +20,12 @@ class NeacMemoryRead(MemoryReadAbs):
 
 class NeacModule(ModuleAbs):
     def __init__(self, module: Module):
-        self.module = module
+        self.module: Module = module
 
     @property
     def name(self) -> str:
-        return self.module.get_name()
+
+        return self.module.get_filename().split("\\")[-1]
 
     @property
     def base(self) -> int:

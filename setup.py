@@ -1,6 +1,5 @@
 # -*- coding: utf-8 -*-
 
-
 import subprocess
 import sys
 import os
@@ -11,9 +10,9 @@ from setuptools.command.develop import develop
 from setuptools.command.egg_info import egg_info
 
 
-class BuildCommand:
+class BuildPy(build_py):
     @staticmethod
-    def run_build_script():
+    def build():
         build_script = Path("build.cmd")
 
         if not build_script.exists():
@@ -46,116 +45,65 @@ class BuildCommand:
             print(f"Error executing build script: {e}")
             return False
 
-
-class CustomBuildPy(build_py, BuildCommand):
     def run(self):
-        if not self.run_build_script():
+        if not self.build():
             sys.exit(1)
         super().run()
 
 
-class CustomDevelop(develop, BuildCommand):
-    def run(self):
-        if not self.run_build_script():
-            sys.exit(1)
-        super().run()
-
-
-class CustomEggInfo(egg_info, BuildCommand):
-    def run(self):
-        if not self.run_build_script():
-            sys.exit(1)
-        super().run()
-
-
-# Package configuration
-PACKAGES = [
-    "NeacController",
-    "pyMeow",
-    "ak_memkit"
-]
-
-PACKAGE_DIR = {
-    "": ".",
-    "NeacController": "libs/NeacController/NeacController",
-    "pyMeow": "libs/pyMeow",
-    "ak_memkit": "src/ak_memkit"
-}
-
-PACKAGE_DATA = {
-    "*": ["*.pyd"],
-}
-
-
-# Read metadata from pyproject.toml
-def read_pyproject_metadata():
+def pyproject():
     try:
-        import tomllib
-        with open("pyproject.toml", "rb") as f:
-            data = tomllib.load(f)
+        return {
+            "name":         "ak-memkit",
+            "version":      "0.0.1",
+            "author":       "AK",
+            "author_email": "akpainkiller32767@gmail.com",
+            "description":  "AK32767's mysterious memory reading toolkit",
+            "license":      "MIT",
+            "classifiers":  [
+                "Development Status :: 3 - Alpha",
+                "Intended Audience :: Developers",
+                "Topic :: Software Development :: Libraries :: Python Modules",
+                "Programming Language :: Python :: 3.12",
+                "Programming Language :: Python :: 3.13",
+                "Programming Language :: Python :: 3.14",
+                "Operating System :: Microsoft :: Windows",
+            ],
 
-        project = data.get("project", {})
 
-        metadata = {
-            "name":                          project.get("name", "ak-memkit"),
-            "version":                       project.get("version", "0.0.1"),
-            "author":                        project.get("authors", [{}])[0].get("name", ""),
-            "author_email":                  project.get("authors", [{}])[0].get("email", ""),
-            "description":                   project.get("description", ""),
-            "long_description":              open("README.md").read() if os.path.exists("README.md") else "",
-            "long_description_content_type": "text/markdown",
-            "url":                           project.get("urls", {}).get("Homepage", ""),
-            "license":                       project.get("license", {}).get("text", "MIT"),
-            "classifiers":                   project.get("classifiers", []),
-            "python_requires":               project.get("requires-python", ">=3.12"),
-            "install_requires":              project.get("dependencies", []),
+            "python_requires":  ">=3.12",
+            "install_requires": [
+                f"neac_controller @ git+https://github.com/AK-0x7FFF/NeacController.git",
+                f"pyMeow @ git+https://github.com/AK-0x7FFF/pyMeow.git",
+
+                "memprocfs>=5.14.0",
+                "numpy",
+                "numba",
+                "scipy",
+                "deprecated",
+                "pybind11>=2.6.0",
+                "winappdbg @ git+https://github.com/MarioVilas/winappdbg.git",
+             ],
         }
 
-        return metadata
     except Exception as e:
         print(f"Warning: Failed to read pyproject.toml: {e}")
         return {}
 
 
 if __name__ == "__main__":
-    # Read metadata
-    metadata = read_pyproject_metadata()
+    pyproject = pyproject()
 
-    # Setup arguments
-    setup_kwargs = {
-        # Basic package configuration
-        "packages": PACKAGES,
-        "package_dir": PACKAGE_DIR,
-        "include_package_data": True,
-        "package_data": PACKAGE_DATA,
-
-        # Custom commands
-        "cmdclass": {
-            "build_py": CustomBuildPy,
-            "develop": CustomDevelop,
-            "egg_info": CustomEggInfo,
-        },
-
-        # Metadata from pyproject.toml
-        "name": metadata.get("name", "ak-memkit"),
-        "version": metadata.get("version", "0.0.1"),
-        "author": metadata.get("author", "AK"),
-        "author_email": metadata.get("author_email", "akpainkiller32767@gmail.com"),
-        "description": metadata.get("description", "AK32767's mysterious memory reading toolkit"),
-        "long_description": metadata.get("long_description", ""),
-        "long_description_content_type": metadata.get("long_description_content_type"),
-        "url": metadata.get("url", ""),
-        "license": metadata.get("license", "MIT"),
-        "classifiers": metadata.get("classifiers", []),
-        "python_requires": metadata.get("python_requires", ">=3.12"),
-        "install_requires": metadata.get("install_requires", []),
-
-        # Other configuration
-        "zip_safe": False,
-    }
-
-    # Clean None values
-    setup_kwargs = {k: v for k, v in setup_kwargs.items() if v is not None}
-
-    # Call setup
-    setup(**setup_kwargs)
+    setup(**{
+        **{k: v for k, v in pyproject.items() if v is not None},
+        **{
+            "packages": [
+                "ak_memkit"
+            ],
+            "package_dir": {
+                "ak_memkit": "src/ak_memkit"
+            },
+            "include_package_data": True,
+            "zip_safe": False,
+        }
+    })

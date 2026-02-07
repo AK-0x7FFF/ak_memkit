@@ -1,6 +1,0 @@
-[submodule "libs/NeacController"]
-	path = libs/NeacController
-	url = https://github.com/AK-0x7FFF/NeacController.git
-[submodule "libs/pyMeow"]
-	path = libs/pyMeow
-	url = https://github.com/AK-0x7FFF/pyMeow.git
